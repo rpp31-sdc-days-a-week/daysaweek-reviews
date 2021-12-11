@@ -1,0 +1,26 @@
+{
+  "name": "daysaweek-reviews",
+  "version": "1.0.0",
+  "description": "Reviews API Service and databases",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rpp31-sdc-days-a-week/daysaweek-reviews.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rpp31-sdc-days-a-week/daysaweek-reviews/issues"
+  },
+  "homepage": "https://github.com/rpp31-sdc-days-a-week/daysaweek-reviews#readme",
+  "devDependencies": {
+    "jest": "^27.4.4"
+  }
+}
