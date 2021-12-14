@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS characteristics (
   name VARCHAR
 );
 
--- create review_characteristics table
+-- Create review_characteristics table
 CREATE TABLE IF NOT EXISTS review_characteristics (
   id SERIAL PRIMARY KEY,
   review_id INTEGER REFERENCES reviews (id),
