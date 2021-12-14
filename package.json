@@ -22,5 +22,8 @@
   "homepage": "https://github.com/rpp31-sdc-days-a-week/daysaweek-reviews#readme",
   "devDependencies": {
     "jest": "^27.4.4"
+  },
+  "dependencies": {
+    "pg": "^8.7.1"
   }
 }
