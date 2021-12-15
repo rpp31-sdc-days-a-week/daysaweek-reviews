@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   id SERIAL PRIMARY KEY,
   product_id INTEGER,
   rating INTEGER,
-  date TIMESTAMP,
+  date VARCHAR,
   summary VARCHAR(60),
   body VARCHAR,
   recommend BOOLEAN,
@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS characteristics (
 );
 
 -- Create review_characteristics table
-CREATE TABLE IF NOT EXISTS review_characteristics (
+CREATE TABLE IF NOT EXISTS characteristic_reviews (
   id SERIAL PRIMARY KEY,
-  review_id INTEGER REFERENCES reviews (id),
   characteristics_id INTEGER REFERENCES characteristics (id),
+  review_id INTEGER REFERENCES reviews (id),
   value INTEGER
 );
