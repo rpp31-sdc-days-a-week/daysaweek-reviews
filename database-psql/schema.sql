@@ -3,15 +3,15 @@ CREATE TABLE IF NOT EXISTS reviews (
   id SERIAL PRIMARY KEY,
   product_id INTEGER,
   rating INTEGER,
-  summary VARCHAR(60),
-  recommend BOOLEAN,
-  response VARCHAR,
-  body VARCHAR,
   date TIMESTAMP,
+  summary VARCHAR(60),
+  body VARCHAR,
+  recommend BOOLEAN,
+  reported BOOLEAN,
   reviewer_name VARCHAR,
   reviewer_email VARCHAR,
-  helpfulness INTEGER DEFAULT 0,
-  reported BOOLEAN
+  response VARCHAR,
+  helpfulness INTEGER DEFAULT 0
 );
 
 -- Create photos table
