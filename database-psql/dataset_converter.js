@@ -3,24 +3,23 @@ const path = require('path');
 const csv = require('fast-csv');
 const client = require('./index');
 
-const reviewsCSVFilePath = path.join(__dirname, '../datasets/reviews.csv');
+const reviewsCSVFilePath = path.join(__dirname, '../datasets/reviews2.csv');
 const reviewsPhotosCSVFilePath = path.join(__dirname, '../datasets/reviews_photos.csv');
 const characteristicsCSVFilePath = path.join(__dirname, '../datasets/characteristics.csv');
 const characteristic_reviewsCSVFilePath = path.join(__dirname, '../datasets/characteristic_reviews.csv');
 
+console.log(reviewsCSVFilePath);
+
 const filesToParse = [
-  reviewsCSVFilePath,
-  reviewsPhotosCSVFilePath,
-  characteristicsCSVFilePath,
-  characteristic_reviewsCSVFilePath
+  reviewsCSVFilePath
 ];
 
-const parseCSVFiles = async (filePath) => {
+const parseCSVFiles = (filePath) => {
   try {
     if (filePath === reviewsCSVFilePath) {
       let csvStream = csv.parseFile(reviewsCSVFilePath, { headers: true })
         .on('data', row => {
-
+          csvStream.pause();
           // transform data to match database field types
           let id = parseInt(row.id);
           let product_id = parseInt(row.product_id);
@@ -45,6 +44,8 @@ const parseCSVFiles = async (filePath) => {
             .query(query)
             .then(res => console.log(res.rows))
             .catch(e => console.error(e.stack))
+
+            csvStream.resume();
         })
         .on('end', rowCount => console.log(`Parsed ${rowCount} rows`))
         .on('error', error => console.error(error));
@@ -53,7 +54,7 @@ const parseCSVFiles = async (filePath) => {
     if (filePath === reviewsPhotosCSVFilePath) {
       let csvStream = csv.parseFile(reviewsPhotosCSVFilePath, { headers: true })
         .on('data', row => {
-
+          csvStream.pause();
           // transform data to match database field types
           let id = parseInt(row.id);
           let review_id = parseInt(row.review_id);
@@ -69,6 +70,8 @@ const parseCSVFiles = async (filePath) => {
           .query(query)
           .then(res => console.log(res.rows))
           .catch(e => console.error(e.stack))
+
+          csvStream.resume();
         })
         .on('end', rowCount => console.log(`Parsed ${rowCount} rows`))
         .on('error', error => console.error(error));
@@ -77,7 +80,7 @@ const parseCSVFiles = async (filePath) => {
     if (filePath === characteristicsCSVFilePath) {
       let csvStream = csv.parseFile(characteristicsCSVFilePath, { headers: true })
         .on('data', row => {
-
+          csvStream.pause();
           // transform data to match database field types
           let id = parseInt(row.id);
           let product_id = parseInt(row.product_id);
@@ -93,6 +96,8 @@ const parseCSVFiles = async (filePath) => {
           .query(query)
           .then(res => console.log(res.rows))
           .catch(e => console.error(e.stack))
+
+          csvStream.resume();
         })
         .on('end', rowCount => console.log(`Parsed ${rowCount} rows`))
         .on('error', error => console.error(error));
@@ -101,7 +106,7 @@ const parseCSVFiles = async (filePath) => {
     if (filePath === characteristic_reviewsCSVFilePath) {
       let csvStream = csv.parseFile(characteristic_reviewsCSVFilePath, { headers: true })
         .on('data', row => {
-
+          csvStream.pause();
           // transform data to match database field types
           let id = parseInt(row.id);
           let characteristic_id = parseInt(row.characteristic_id);
@@ -118,6 +123,8 @@ const parseCSVFiles = async (filePath) => {
           .query(query)
           .then(res => console.log(res.rows))
           .catch(e => console.error(e.stack))
+
+          csvStream.resume();
         })
     }
   }
