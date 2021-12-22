@@ -1,8 +1,9 @@
-const { Client } = require('pg');
+const { Pool } = require('pg');
 
 // Establish a database connection
+// Using connection pooling which will create a pool of connections and cache those connection to resuse
 
-const client = new Client({
+const pool = new Pool({
   user: 'Chris',
   host: 'localhost',
   database: 'reviewsDB',
@@ -10,8 +11,9 @@ const client = new Client({
   port: 5432
 });
 
-client.connect()
-  .then(() => console.log('Connection Succesful'))
-  .catch(err => console.error('connection error', err.stack));
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err)
+  process.exit(-1)
+});
 
-module.exports = client;
+module.exports = pool;

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const csv = require('fast-csv');
-const client = require('./index');
+const pool = require('./index');
 
 const reviewsCSVFilePath = path.join(__dirname, '../datasets/reviews2.csv');
 const reviewsPhotosCSVFilePath = path.join(__dirname, '../datasets/reviews_photos.csv');
@@ -40,7 +40,7 @@ const parseCSVFiles = (filePath) => {
             values: [id, product_id, rating, date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness]
           };
 
-          client
+          pool
             .query(query)
             .then(res => console.log(res.rows))
             .catch(e => console.error(e.stack))
@@ -66,7 +66,7 @@ const parseCSVFiles = (filePath) => {
             values: [id, review_id, url]
           };
 
-          client
+          pool
           .query(query)
           .then(res => console.log(res.rows))
           .catch(e => console.error(e.stack))
@@ -92,7 +92,7 @@ const parseCSVFiles = (filePath) => {
             values: [id, product_id, name]
           };
 
-          client
+          pool
           .query(query)
           .then(res => console.log(res.rows))
           .catch(e => console.error(e.stack))
@@ -119,7 +119,7 @@ const parseCSVFiles = (filePath) => {
             values: [id, characteristic_id, review_id, value]
           };
 
-          client
+          pool
           .query(query)
           .then(res => console.log(res.rows))
           .catch(e => console.error(e.stack))

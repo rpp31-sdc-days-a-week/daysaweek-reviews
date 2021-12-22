@@ -1,28 +1,25 @@
-const client = require('../database-psql/index');
+const pool = require('../database-psql/index');
 
 module.exports = {
-  getReviewsFromDB: (callback) => {
-    let query = 'SELECT * FROM reviews WHERE product_id = 1';
+  getReviewsFromDB: async (page, count, sort, productID) => {
+    const query = ``;
 
-    client.query(query, (err, res) => {
-      if (err) {
-        console.log(err.stack);
-        return;
-      }
-
-      callback(res);
-    })
+    const client = await pool.connect();
+    const data = await client.query(query);
+    client.release();
+    return data;
   },
   getReviewsMetaDataFromDB: () => {
+    const query = ``;
 
   },
-  addReviewToDB: () => {
-
+  addReviewToDB: (params) => {
+    const query = ``;
   },
   markReviewAsHelpfulOnDB: () => {
-
+    const query = ``;
   },
   markReviewAsReportedOnDB: () => {
-
+    const query = ``;
   }
 };
