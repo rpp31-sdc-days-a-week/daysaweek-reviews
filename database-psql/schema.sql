@@ -35,3 +35,4 @@ CREATE TABLE IF NOT EXISTS characteristic_reviews (
   review_id INTEGER,
   value INTEGER
 );
+
