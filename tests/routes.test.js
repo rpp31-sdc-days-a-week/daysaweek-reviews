@@ -7,7 +7,11 @@ describe('Persistant Reviews API Server', () => {
 
   beforeEach(() => {
     scope = nock('http://localhost');
-  })
+  });
+
+  afterAll(async () => {
+    await new Promise(resolve => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+  });
 
   it('Responds to GET requests for api/reviews/:product_id with a 200 status code', async () => {
 
@@ -43,7 +47,6 @@ describe('Persistant Reviews API Server', () => {
       .get(`/api/reviews/${product_id}`)
       .query({ count: 2, page: 1, sort: 'helpful'})
       .reply(200, mockResponse)
-
 
     const res = await request(app).get(`/api/reviews/${product_id}`);
     expect(res.status).toBe(200);
