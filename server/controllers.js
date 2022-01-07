@@ -31,17 +31,21 @@ module.exports = {
 
     try {
       let data = await models.addReviewToDB(bodyParams);
+      let reviewID = data.rows[0].id;
+      let photoData = await models.addPhotosToDB({ photos: bodyParams.photos, reviewID });
+      let characteristicsData = await models.addCharacteristicReviewsToDB({ characteristics: bodyParams.characteristics, reviewID });
+
       res.status(201).send(data);
     } catch(err) {
       console.log(err);
-      res.status(201).send();
+      res.status(404).send();
     }
   },
   markReviewAsHelpful: async (req, res) => {
     let reviewID = req.params.review_id;
 
     try {
-      let data = await models.markReviewAsHelpful(reviewID);
+      let data = await models.markReviewAsHelpfulOnDB(reviewID);
       res.status(204).send();
     } catch(err) {
       console.log(err);
@@ -53,7 +57,7 @@ module.exports = {
     let reviewID = req.params.review_id;
 
     try {
-      let data = await models.markReviewAsHelpful(reviewID);
+      let data = await models.markReviewAsReportedOnDB(reviewID);
       res.status(204).send();
     } catch(err) {
       console.log(err);

@@ -1,4 +1,5 @@
 const pool = require('../database-psql/index');
+const formatData = require('../database-psql/dataTransform/transform_char');
 
 const getReviewsFromDB = async (page, count, sort, productID) => {
   if (sort === 'newest') {
@@ -9,7 +10,7 @@ const getReviewsFromDB = async (page, count, sort, productID) => {
     sort = 'ORDER BY r.helpfulness DESC'
   }
 
-  if (sort === 'newest') {
+  if (sort === 'relevant') {
     sort = 'ORDER BY r.helpfulness DESC, r.date DESC'
   }
 
@@ -39,111 +40,91 @@ const getReviewsFromDB = async (page, count, sort, productID) => {
 };
 
 const getReviewsMetaDataFromDB = async (productID) => {
+
   const query = `
-  select rMain.product_id,
-    (
-    select jsonb_agg(outerC) from
-      (
-      SELECT json_object_agg(r2.rating,
-        (
-        SELECT count(r1.rating)
-        FROM reviews r1
-        WHERE r1.product_id = rMain.product_id AND r1.rating = r2.rating
-        )
-      ) AS counts
-    FROM reviews r2
-    WHERE r2.product_id = rMain.product_id
-    GROUP BY r2.rating) as outerC) as ratings,
-    (
-    select jsonb_agg(outerRecommendCounts) from
-      (
-      SELECT json_object_agg(r4.recommend,
-        (
-        SELECT count(r3.recommend)
+    SELECT r.product_id, (
+      SELECT jsonb_agg(total_ratings)
+      FROM (
+        SELECT json_build_object(r3.rating, (
+          SELECT COUNT(r2.rating)
+          FROM reviews AS r2
+          WHERE r2.product_id = r.product_id AND r2.rating = r3.rating
+        )) AS rating_counts
         FROM reviews r3
-        WHERE r3.product_id = rMain.product_id AND r3.recommend = r4.recommend
-        )
-      ) AS recommendCounts
-    FROM reviews r4
-    WHERE r4.product_id = rMain.product_id
-    GROUP BY r4.recommend) as outerRecommendCounts
-    ) as recommended,
-    (
-    select array_to_json(array_agg(characteristicGroup)) from
-      (
-      select c.name, c.id, avg(cr.value) as value
-      from "characteristics" c
-      inner join characteristic_reviews cr
-      on c.id = cr.characteristic_id
-      where c.product_id = rMain.product_id
-      group by c.id
-      ) characteristicGroup
-    ) as characteristics
-  from reviews rMain
-  where rMain.product_id = ${productID}
-  group by rMain.product_id
-  ;`;
-
-  const metadataTransformer = (data) => {
-    let transformedRatings = {},
-      transformedRecommended = {},
-      transformedCharacteristics = {};
-    data = data.rows[0];
-
-    data.ratings.forEach((row) => {
-      transformedRatings = { ...transformedRatings, ...row.counts };
-    });
-    data.ratings = transformedRatings;
-
-    data.recommended.forEach((row) => {
-      transformedRecommended = { ...transformedRecommended, ...row.recommendcounts };
-    });
-    data.recommended = transformedRecommended;
-
-    data.characteristics.forEach((row) => {
-      transformedCharacteristics = { ...transformedCharacteristics, [row.name]: { id: row.id, value: row.value } };
-    });
-    data.characteristics = transformedCharacteristics;
-
-    return data;
-  };
+        WHERE r3.product_id = r.product_id
+        GROUP BY r3.rating
+      ) AS total_ratings
+    ) AS ratings, (
+      SELECT jsonb_agg(recommend_counts)
+      FROM (
+        SELECT json_build_object(r5.recommend, (
+          SELECT COUNT(r4.recommend)
+          FROM reviews AS r4
+          WHERE r4.product_id = r.product_id AND r4.recommend = r5.recommend
+        )) AS r_counts
+        FROM reviews r5
+        WHERE r5.product_id = r.product_id
+        GROUP BY r5.recommend
+      ) AS recommend_counts
+    ) AS recommended, (
+      SELECT jsonb_agg(json_build_object('name', cg.name, 'id', cg.id ,'value', cg.value))
+      FROM (
+        SELECT c.name, c.id, AVG(cr.value) AS value
+        FROM characteristics AS c
+        JOIN characteristic_reviews AS cr ON c.id = cr.characteristic_id
+        WHERE c.product_id = r.product_id
+        GROUP BY c.id
+      ) AS cg
+    ) AS characteristics
+    FROM reviews AS r
+    WHERE r.product_id = ${productID}
+    GROUP BY r.product_id;`
 
   const client = await pool.connect();
   const data = await client.query(query);
   client.release();
-  return data;
+  return formatData(data);
 };
 
-const addPhotosToDB = async ({ photos, reviewId }) => {
-  const query = `INSERT INTO photos (url, review_id) SELECT url, review_id FROM UNNEST $1::text[], $2::int[]) AS t (url, review_id)`;
+const addPhotosToDB = async ({ photos, reviewID }) => {
+  const query = `
+    INSERT INTO photos (url, review_id)
+    SELECT url, review_id
+    FROM UNNEST ($1::VARCHAR[], $2::INTEGER[]) AS p (url, review_id);`;
 
   const client = await pool.connect();
-  const data = await client.query(query, [photos, Array(photos.length).fill(reviewId)]);
+  const reviewPhotos = [photos, Array(photos.length).fill(reviewID)];
+
+  const data = await client.query(query, reviewPhotos);
   client.release();
   return data;
 };
 
 const addCharacteristicReviewsToDB = async ({ characteristics, reviewID }) => {
-  const query = `INSERT INTO characteristics_reviews (review_id, characteristics_id, value)
-  SELECT review_id, characteristics_id, value FROM UNNEST ($1::int[], $2::int[], $3::int[]) AS t (review_id, characteristics_id, value)`;
-
+  const query = `
+    INSERT INTO characteristic_reviews (review_id, characteristic_id, value)
+    SELECT review_id, characteristic_id, value
+    FROM UNNEST ($1::INTEGER[], $2::INTEGER[], $3::INTEGER[]) AS c (review_id, characteristic_id, value)`;
+  console.log(characteristics, reviewID);
   const client = await pool.connect();
-  const data = await client.query(query, [ Array(Object.keys(characteristics).length).fill(reviewId), Object.keys(characteristics), Object.values(characteristics),
+  const data = await client.query(
+    query,
+    [ Array(Object.keys(characteristics).length).fill(reviewID), Object.keys(characteristics), Object.values(characteristics),
   ]);
   client.release();
   return data;
 }
 
-const addReviewToDB = async ({ product_id, rating, summary, body, recommend, name, email }) => {
-  const query = `INSERT INTO reviews
-      (product_id, rating, date, summary, body, recommend, reviewer_name, reviewer_email, helpfulness)
+const addReviewToDB = async ({ product_id, rating, summary, body, recommend, name, email, characteristics }) => {
+  const query = `
+      INSERT INTO reviews
+      (product_id, rating, date, summary, body, recommend, reviewer_name, reviewer_email, helpfulness, reported)
       VALUES
-      (${product_id}, ${rating}, current_timestamp, '${summary}', '${body}', ${recommend}, '${name}', '${email}', 0)`;
+      (${product_id}, ${rating}, CURRENT_TIMESTAMP, '${summary}', '${body}', ${recommend}, '${name}', '${email}', 0, false)
+      RETURNING id;`;
 
   const client = await pool.connect();
   const data = await client.query(query);
-  addPhotosToDB();
-  addCharacteristicReviewsToDB();
   client.release();
   return data;
 };
@@ -157,7 +138,7 @@ const markReviewAsHelpfulOnDB = async (reviewID) => {
   return data;
 };
 
-const markReviewAsReportedOnDB = async () => {
+const markReviewAsReportedOnDB = async (reviewID) => {
   const query = `UPDATE reviews SET reported = ${true} WHERE id = ${reviewID}`;
 
   const client = await pool.connect();
@@ -169,6 +150,8 @@ const markReviewAsReportedOnDB = async () => {
 module.exports = {
   getReviewsFromDB,
   getReviewsMetaDataFromDB,
+  addPhotosToDB,
+  addCharacteristicReviewsToDB,
   addReviewToDB,
   markReviewAsHelpfulOnDB,
   markReviewAsReportedOnDB
