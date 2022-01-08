@@ -87,30 +87,36 @@ const getReviewsMetaDataFromDB = async (productID) => {
 };
 
 const addPhotosToDB = async ({ photos, reviewID }) => {
-  const query = `
-    INSERT INTO photos (url, review_id)
-    SELECT url, review_id
-    FROM UNNEST ($1::VARCHAR[], $2::INTEGER[]) AS p (url, review_id);`;
+  const reviewIDs = Array(photos.length).fill(reviewID);
+  const query = {
+    text: `
+      INSERT INTO photos (url, review_id)
+      SELECT url, review_id
+      FROM UNNEST ($1::VARCHAR[], $2::INTEGER[]) AS p (url, review_id);`,
+    values: [photos, reviewIDs]
+  }
 
   const client = await pool.connect();
-  const reviewPhotos = [photos, Array(photos.length).fill(reviewID)];
-
-  const data = await client.query(query, reviewPhotos);
+  const data = await client.query(query);
   client.release();
   return data;
 };
 
 const addCharacteristicReviewsToDB = async ({ characteristics, reviewID }) => {
-  const query = `
+  const reviewIDs = Array(Object.keys(characteristics).length).fill(reviewID);
+  const char = Object.keys(characteristics);
+  const values = Object.values(characteristics);
+
+  const query = {
+    text: `
     INSERT INTO characteristic_reviews (review_id, characteristic_id, value)
     SELECT review_id, characteristic_id, value
-    FROM UNNEST ($1::INTEGER[], $2::INTEGER[], $3::INTEGER[]) AS c (review_id, characteristic_id, value)`;
-  console.log(characteristics, reviewID);
+    FROM UNNEST ($1::INTEGER[], $2::INTEGER[], $3::INTEGER[]) AS c (review_id, characteristic_id, value)`,
+    values: [reviewIDs, char, values]
+  };
+
   const client = await pool.connect();
-  const data = await client.query(
-    query,
-    [ Array(Object.keys(characteristics).length).fill(reviewID), Object.keys(characteristics), Object.values(characteristics),
-  ]);
+  const data = await client.query(query);
   client.release();
   return data;
 }
