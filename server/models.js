@@ -42,7 +42,7 @@ const getReviewsMetaDataFromDB = async (productID) => {
 
   const query = `
     SELECT r.product_id, (
-      SELECT jsonb_agg(json_build_object(r3.rating, r3.count))
+      SELECT jsonb_agg(json_build_object(r3.rating, r3.count::TEXT))
       FROM (
         SELECT r2.rating, COUNT(r2.rating)
         FROM reviews AS r2
@@ -50,7 +50,7 @@ const getReviewsMetaDataFromDB = async (productID) => {
         GROUP BY r2.rating
       ) AS r3
     ) AS ratings, (
-      SELECT jsonb_agg(json_build_object(r5.recommend, r5.count))
+      SELECT jsonb_agg(json_build_object(r5.recommend, r5.count::TEXT))
       FROM (
         SELECT r4.recommend, COUNT(r4.recommend)
         FROM reviews AS r4
@@ -58,7 +58,7 @@ const getReviewsMetaDataFromDB = async (productID) => {
         GROUP BY r4.recommend
       ) AS r5
     ) AS recommended, (
-      SELECT jsonb_agg(json_build_object('name', cg.name, 'id', cg.id ,'value', cg.value))
+      SELECT jsonb_agg(json_build_object('name', cg.name, 'id', cg.id ,'value', cg.value::TEXT))
       FROM (
         SELECT c.name, c.id, AVG(cr.value) AS value
         FROM characteristics AS c

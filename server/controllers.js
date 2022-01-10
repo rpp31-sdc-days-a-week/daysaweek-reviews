@@ -16,14 +16,14 @@ module.exports = {
     const productID = req.params.product_id;
 
     try {
-      let cachedData = await redisClient.get(productID);
-      if (cachedData) {
-        return res.status(200).send(JSON.parse(cachedData).rows);
-      }
+      // let cachedData = await redisClient.get(productID);
+
+      // if (cachedData) {
+      //   return res.status(200).send(JSON.parse(cachedData).rows);
+      // }
 
       let data = await models.getReviewsFromDB(page, count, sort, productID);
 
-      // add data to Redis
       await redisClient.set(productID, JSON.stringify(data));
 
       res.status(200).send(data.rows);
@@ -38,10 +38,10 @@ module.exports = {
     const id = `meta${productID}`;
 
     try {
-      let cachedData = await redisClient.get(id);
-      if (cachedData) {
-        return res.status(200).send(JSON.parse(cachedData));
-      }
+      // let cachedData = await redisClient.get(id);
+      // if (cachedData) {
+      //   return res.status(200).send(JSON.parse(cachedData));
+      // }
 
       let data = await models.getReviewsMetaDataFromDB(productID);
 
