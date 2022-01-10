@@ -1,5 +1,5 @@
 const pool = require('../database-psql/index');
-const formatData = require('../database-psql/dataTransform/transform_char');
+const formatData = require('../database-psql/dataTransform/transform_data');
 
 const getReviewsFromDB = async (page, count, sort, productID) => {
   if (sort === 'newest') {
@@ -42,29 +42,21 @@ const getReviewsMetaDataFromDB = async (productID) => {
 
   const query = `
     SELECT r.product_id, (
-      SELECT jsonb_agg(total_ratings)
+      SELECT jsonb_agg(json_build_object(r3.rating, r3.count))
       FROM (
-        SELECT json_build_object(r3.rating, (
-          SELECT COUNT(r2.rating)
-          FROM reviews AS r2
-          WHERE r2.product_id = r.product_id AND r2.rating = r3.rating
-        )) AS rating_counts
-        FROM reviews r3
-        WHERE r3.product_id = r.product_id
-        GROUP BY r3.rating
-      ) AS total_ratings
+        SELECT r2.rating, COUNT(r2.rating)
+        FROM reviews AS r2
+        WHERE r2.product_id = r.product_id
+        GROUP BY r2.rating
+      ) AS r3
     ) AS ratings, (
-      SELECT jsonb_agg(recommend_counts)
+      SELECT jsonb_agg(json_build_object(r5.recommend, r5.count))
       FROM (
-        SELECT json_build_object(r5.recommend, (
-          SELECT COUNT(r4.recommend)
-          FROM reviews AS r4
-          WHERE r4.product_id = r.product_id AND r4.recommend = r5.recommend
-        )) AS r_counts
-        FROM reviews r5
-        WHERE r5.product_id = r.product_id
-        GROUP BY r5.recommend
-      ) AS recommend_counts
+        SELECT r4.recommend, COUNT(r4.recommend)
+        FROM reviews AS r4
+        WHERE r4.product_id = r.product_id
+        GROUP BY r4.recommend
+      ) AS r5
     ) AS recommended, (
       SELECT jsonb_agg(json_build_object('name', cg.name, 'id', cg.id ,'value', cg.value))
       FROM (
@@ -88,7 +80,7 @@ const getReviewsMetaDataFromDB = async (productID) => {
 const addPhotosToDB = async ({ photos, reviewID }) => {
   const reviewIDs = [];
   for (let i = 0; i < photos.length; i++) {
-    reviewsIDs.push(reviewID);
+    reviewIDs.push(reviewID);
   };
 
   const query = {

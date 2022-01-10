@@ -1,11 +1,11 @@
 module.exports = formatData = function(data) {
   data = data.rows[0];
   data.ratings = data.ratings.reduce((previousRow, currentRow) => {
-    return previousRow = {...previousRow, ...currentRow.rating_counts};
+    return previousRow = {...previousRow, ...currentRow};
   }, {});
 
   data.recommended = data.recommended.reduce((previousRow, currentRow) => {
-    return previousRow = {...previousRow, ...currentRow.r_counts};
+    return previousRow = {...previousRow, ...currentRow};
   }, {});
 
   data.characteristics = data.characteristics.reduce((previousRow, currentRow) => {

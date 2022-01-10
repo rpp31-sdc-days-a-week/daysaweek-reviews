@@ -55,11 +55,13 @@ module.exports = {
     }
   },
   addReview: async (req, res) => {
+    let params = req.body;
+
     try {
-      let data = await models.addReviewToDB(req.body);
+      let data = await models.addReviewToDB(params);
       let reviewID = data.rows[0].id;
-      let photoData = await models.addPhotosToDB({ photos: bodyParams.photos, reviewID });
-      let characteristicsData = await models.addCharacteristicReviewsToDB({ characteristics: bodyParams.characteristics, reviewID });
+      let photoData = await models.addPhotosToDB({ photos: params.photos, reviewID });
+      let characteristicsData = await models.addCharacteristicReviewsToDB({ characteristics: params.characteristics, reviewID });
 
       res.status(201).send(data);
     } catch(err) {
