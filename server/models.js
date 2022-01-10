@@ -3,33 +3,32 @@ const formatData = require('../database-psql/dataTransform/transform_char');
 
 const getReviewsFromDB = async (page, count, sort, productID) => {
   if (sort === 'newest') {
-    sort = 'ORDER BY r.date DESC'
+    sort = 'r.date DESC'
   }
 
   if (sort === 'helpful') {
-    sort = 'ORDER BY r.helpfulness DESC'
+    sort = 'r.helpfulness DESC'
   }
 
   if (sort === 'relevant') {
-    sort = 'ORDER BY r.helpfulness DESC, r.date DESC'
+    sort = 'r.helpfulness DESC, r.date DESC'
   }
 
   const offset = (count * page) - count;
 
   const query = `
     SELECT r.id AS review_id, r.rating, r.summary, r.recommend, r.response, r.body, r.date, r.reviewer_name, r.helpfulness, (
-      SELECT coalesce(json_agg(json_build_object('id', photo.id, 'url', photo.url)), '[]'::json)
+      SELECT coalesce(json_agg(json_build_object('id', photo.id, 'url', photo.url)), '[]'::JSON)
       FROM (
         SELECT p.id, p.url
         FROM photos AS p
-        JOIN reviews
-        ON reviews.id = p.review_id
+        JOIN reviews ON reviews.id = p.review_id
         WHERE p.review_id = r.id
       ) AS photo
     ) AS photos
     FROM reviews AS r
     WHERE r.product_id = ${productID} AND r.reported = false
-    ${sort}
+    ORDER BY ${sort}
     LIMIT ${count}
     OFFSET ${offset};`;
 
@@ -87,7 +86,11 @@ const getReviewsMetaDataFromDB = async (productID) => {
 };
 
 const addPhotosToDB = async ({ photos, reviewID }) => {
-  const reviewIDs = Array(photos.length).fill(reviewID);
+  const reviewIDs = [];
+  for (let i = 0; i < photos.length; i++) {
+    reviewsIDs.push(reviewID);
+  };
+
   const query = {
     text: `
       INSERT INTO photos (url, review_id)
@@ -103,7 +106,10 @@ const addPhotosToDB = async ({ photos, reviewID }) => {
 };
 
 const addCharacteristicReviewsToDB = async ({ characteristics, reviewID }) => {
-  const reviewIDs = Array(Object.keys(characteristics).length).fill(reviewID);
+  const reviewIDs = [];
+  for (let i = 0; i < Object.keys(characteristics).length; i++) {
+    reviewIDs.push(reviewID);
+  };
   const char = Object.keys(characteristics);
   const values = Object.values(characteristics);
 
