@@ -1,6 +1,5 @@
 module.exports = formatData = function(data) {
   data = data.rows[0];
-
   // transform ratings data
   data.ratings = data.ratings.reduce((previousRow, currentRow) => {
     return previousRow = {...previousRow, ...currentRow};

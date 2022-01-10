@@ -74,7 +74,8 @@ const getReviewsMetaDataFromDB = async (productID) => {
   const client = await pool.connect();
   const data = await client.query(query);
   client.release();
-  return formatData(data);
+
+  return data.rows.length ? formatData(data) : data;
 };
 
 const addPhotosToDB = async ({ photos, reviewID }) => {
