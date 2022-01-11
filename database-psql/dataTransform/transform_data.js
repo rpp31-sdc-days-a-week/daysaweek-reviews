@@ -1,5 +1,6 @@
 module.exports = formatData = function(data) {
   data = data.rows[0];
+
   // transform ratings data
   data.ratings = data.ratings.reduce((previousRow, currentRow) => {
     return previousRow = {...previousRow, ...currentRow};
@@ -20,7 +21,7 @@ module.exports = formatData = function(data) {
   if (!data.recommended['false']) data.recommended['false'] = '0';
 
   // transform characteristics data
- if (data.characteristics !== null) {
+ if (data.characteristics !== undefined) {
     data.characteristics = data.characteristics.reduce((previousRow, currentRow) => {
     return previousRow = {...previousRow, [currentRow.name]: {id: currentRow.id, value: currentRow.value}};
   }, {});

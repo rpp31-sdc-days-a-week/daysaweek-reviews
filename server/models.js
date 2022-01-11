@@ -135,7 +135,7 @@ const addReviewToDB = async ({ product_id, rating, summary, body, recommend, nam
 };
 
 const markReviewAsHelpfulOnDB = async (reviewID) => {
-  const query = `UPDATE reviews SET helpfulness = helpfulness + 1 WHERE id = ${reviewID}`;
+  const query = `UPDATE reviews SET helpfulness = helpfulness + 1 WHERE id = ${reviewID} RETURNING product_id`;
 
   const client = await pool.connect();
   const data = await client.query(query);
@@ -144,7 +144,7 @@ const markReviewAsHelpfulOnDB = async (reviewID) => {
 };
 
 const markReviewAsReportedOnDB = async (reviewID) => {
-  const query = `UPDATE reviews SET reported = ${true} WHERE id = ${reviewID}`;
+  const query = `UPDATE reviews SET reported = ${true} WHERE id = ${reviewID} RETURNING product_id`;
 
   const client = await pool.connect();
   const data = await client.query(query);

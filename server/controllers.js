@@ -63,6 +63,8 @@ module.exports = {
       let photoData = await models.addPhotosToDB({ photos: params.photos, reviewID });
       let characteristicsData = await models.addCharacteristicReviewsToDB({ characteristics: params.characteristics, reviewID });
 
+      redisClient.del(params.product_id.toString());
+
       res.status(201).send(data);
     } catch(err) {
       console.log(err);
@@ -74,6 +76,9 @@ module.exports = {
 
     try {
       let data = await models.markReviewAsHelpfulOnDB(reviewID);
+
+      redisClient.del(data.rows[0].product_id.toString());
+
       res.status(204).send();
     } catch(err) {
       console.log(err);
@@ -86,6 +91,9 @@ module.exports = {
 
     try {
       let data = await models.markReviewAsReportedOnDB(reviewID);
+
+      redisClient.del(data.rows[0].product_id.toString());
+
       res.status(204).send();
     } catch(err) {
       console.log(err);
