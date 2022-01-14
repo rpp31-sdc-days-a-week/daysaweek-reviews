@@ -4,11 +4,11 @@ const { Pool } = require('pg');
 // Using connection pooling which will create a pool of connections and cache those connection to resuse
 
 const pool = new Pool({
-  user: 'Chris',
-  host: 'localhost',
-  database: 'reviewsDB',
-  password: '',
-  port: 5432
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'reviewsDB',
+  password: process.env.DB_PASS || '',
+  port: process.env.DB_PORT || 5432
 });
 
 pool.on('error', (err, client) => {

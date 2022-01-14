@@ -1,3 +1,12 @@
+const dotenv = require('dotenv');
+const result = dotenv.config();
+
+if (result.error) {
+  throw result.error;
+}
+
+console.log(result.parsed);
+
 const express = require('express');
 const app = express();
 const cluster = require('cluster');
